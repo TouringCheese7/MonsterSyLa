@@ -1,0 +1,34 @@
+/* 🔥 FONDO BASE */
+.bg-main {
+  background-color: #000;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 🔥 RAYAS */
+.bg-main::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.05) 0px,
+    rgba(34, 197, 94, 0.05) 2px,
+    transparent 2px,
+    transparent 14px
+  );
+  pointer-events: none;
+}
+
+/* 🔥 GRADIENT SUTIL */
+.bg-main::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(34, 197, 94, 0.08),
+    transparent 70%
+  );
+  pointer-events: none;
+}
