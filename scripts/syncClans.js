@@ -2,7 +2,21 @@ import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
 
-// 🔐 ENV
+// =========================
+// 🔐 VALIDACIÓN ENV
+// =========================
+if (
+  !process.env.SUPABASE_URL ||
+  !process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  !process.env.CR_API_KEY
+) {
+  console.error('❌ Faltan variables de entorno (.env)');
+  process.exit(1);
+}
+
+// =========================
+// 🔌 CLIENTES
+// =========================
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -12,13 +26,15 @@ const headers = {
   Authorization: `Bearer ${process.env.CR_API_KEY}`,
 };
 
-// 🔥 FUNCIÓN PRINCIPAL POR CLAN
+// =========================
+// 🔥 FUNCIÓN PRINCIPAL
+// =========================
 async function sincronizarClan(clan, modo) {
   const CLAN_TAG = clan.clan_tag.replace('#', '');
   const CLAN_ID = clan.id;
 
   try {
-    console.log(`\n--- 🛡️ Clan ${CLAN_TAG} | ${modo.toUpperCase()} ---`);
+    console.log(`\n🛡️ Clan ${CLAN_TAG} | ${modo.toUpperCase()}`);
 
     // =========================
     // 🟡 DOMINGO → SNAPSHOTS
@@ -32,50 +48,51 @@ async function sincronizarClan(clan, modo) {
       const ahora = new Date();
       const fechaTruncada = `${ahora.toISOString().split('T')[0]}T06:00:00`;
 
-      console.log(`📅 Fecha snapshot: ${fechaTruncada}`);
+      console.log(`📅 Snapshot: ${fechaTruncada}`);
 
-      for (const m of res.data.items) {
-        // 🔥 UPSERT PLAYER (GLOBAL)
-        const { data: player, error: playerError } = await supabase
-          .from('players')
-          .upsert(
-            {
-              player_tag: m.tag,
-              name: m.name,
-            },
-            { onConflict: 'player_tag' }
-          )
-          .select()
-          .single();
+      // 🔥 UPSERT MASIVO PLAYERS
+      const playersData = res.data.items.map(m => ({
+        player_tag: m.tag,
+        name: m.name,
+      }));
 
-        if (playerError) {
-          console.error(`❌ Player error ${m.name}:`, playerError.message);
-          continue;
-        }
+      const { data: players, error: playersError } = await supabase
+        .from('players')
+        .upsert(playersData, { onConflict: 'player_tag' })
+        .select();
 
-        // 🔥 UPSERT SNAPSHOT (MULTICLAN REAL)
-        const { error: snapError } = await supabase
-          .from('snapshots')
-          .upsert(
-            {
-              player_id: player.id,
-              clan_id: CLAN_ID,
-              date: fechaTruncada,
-              donations: m.donations,
-              donations_received: m.donationsReceived,
-              trophies: m.trophies,
-              war_points: 0,
-            },
-            {
-              onConflict: 'player_id,clan_id,date',
-            }
-          );
+      if (playersError) {
+        console.error('❌ Error players:', playersError.message);
+        return;
+      }
 
-        if (snapError) {
-          console.error(`❌ Snapshot error ${m.name}:`, snapError.message);
-        } else {
-          console.log(`✅ ${m.name} guardado`);
-        }
+      // 🔥 MAPA TAG → ID
+      const playerMap = {};
+      players.forEach(p => {
+        playerMap[p.player_tag] = p.id;
+      });
+
+      // 🔥 SNAPSHOTS MASIVOS
+      const snapshotsData = res.data.items.map(m => ({
+        player_id: playerMap[m.tag],
+        clan_id: CLAN_ID,
+        date: fechaTruncada,
+        donations: m.donations,
+        donations_received: m.donationsReceived,
+        trophies: m.trophies,
+        war_points: 0,
+      }));
+
+      const { error: snapError } = await supabase
+        .from('snapshots')
+        .upsert(snapshotsData, {
+          onConflict: 'player_id,clan_id,date',
+        });
+
+      if (snapError) {
+        console.error('❌ Error snapshots:', snapError.message);
+      } else {
+        console.log(`✔ ${snapshotsData.length} jugadores guardados`);
       }
 
       console.log('✅ Domingo completado');
@@ -88,18 +105,18 @@ async function sincronizarClan(clan, modo) {
       const { data: lastSnapshot, error } = await supabase
         .from('snapshots')
         .select('date')
-        .eq('clan_id', CLAN_ID) // 🔥 CRÍTICO
+        .eq('clan_id', CLAN_ID)
         .order('date', { ascending: false })
         .limit(1)
         .single();
 
       if (error || !lastSnapshot) {
-        console.error(`❌ No hay snapshot previo para clan ${CLAN_TAG}`);
+        console.error(`❌ No hay snapshot para ${CLAN_TAG}`);
         return;
       }
 
       const fechaObjetivo = lastSnapshot.date;
-      console.log(`🔍 Actualizando guerra para: ${fechaObjetivo}`);
+      console.log(`🔍 Actualizando guerra: ${fechaObjetivo}`);
 
       const res = await axios.get(
         `https://proxy.royaleapi.dev/v1/clans/%23${CLAN_TAG}/riverracelog`,
@@ -109,11 +126,11 @@ async function sincronizarClan(clan, modo) {
       const ultimaGuerra = res.data.items[0];
 
       const standing = ultimaGuerra.standings.find(
-        (s) => s.clan.tag.replace('#', '') === CLAN_TAG
+        s => s.clan.tag.replace('#', '') === CLAN_TAG
       );
 
       if (!standing) {
-        console.log(`⚠️ Clan no encontrado en river race`);
+        console.log('⚠️ Clan no encontrado en guerra');
         return;
       }
 
@@ -130,25 +147,26 @@ async function sincronizarClan(clan, modo) {
           .from('snapshots')
           .update({ war_points: p.fame })
           .eq('player_id', player.id)
-          .eq('clan_id', CLAN_ID) // 🔥 CRÍTICO
+          .eq('clan_id', CLAN_ID)
           .eq('date', fechaObjetivo);
 
         if (updateError) {
-          console.error(`❌ Error guerra ${p.name}:`, updateError.message);
+          console.error(`❌ ${p.name}: ${updateError.message}`);
         } else {
-          console.log(`⚔️ ${p.name}: ${p.fame} pts`);
+          console.log(`⚔️ ${p.name}: ${p.fame}`);
         }
       }
 
       console.log('✅ Lunes completado');
     }
+
   } catch (err) {
-    console.error(`❌ Error en clan ${CLAN_TAG}:`, err.message);
+    console.error(`❌ Error clan ${CLAN_TAG}:`, err.message);
   }
 }
 
 // =========================
-// 🚀 MAIN MULTICLAN
+// 🚀 MAIN
 // =========================
 async function main() {
   const modo = process.argv[2];
@@ -158,28 +176,24 @@ async function main() {
     return;
   }
 
-  console.log('\n🚀 INICIANDO SINCRONIZACIÓN MULTICLAN\n');
+  console.log('\n🚀 SINCRONIZACIÓN MULTICLAN\n');
 
   const { data: clans, error } = await supabase
     .from('clans')
     .select('id, clan_tag');
 
   if (error || !clans) {
-    console.error('❌ Error obteniendo clanes:', error?.message);
+    console.error('❌ Error clanes:', error?.message);
     return;
   }
 
-  console.log(`📦 Clanes encontrados: ${clans.length}`);
+  console.log(`📦 Clanes: ${clans.length}`);
 
-  // 🔥 SECUENCIAL (SEGURIDAD)
   for (const clan of clans) {
     await sincronizarClan(clan, modo);
   }
 
-  // ⚡ OPCIONAL (PARALELO)
-  // await Promise.all(clans.map(c => sincronizarClan(c, modo)));
-
-  console.log('\n🎉 SINCRONIZACIÓN COMPLETA\n');
+  console.log('\n🎉 COMPLETADO\n');
 }
 
 main();

@@ -1,15 +1,18 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
-// Páginas
+// 🔥 PÁGINAS
 import Home from "../features/home/Home";
 import RankingPage from "../features/ranking/pages/RankingPage";
 import PlayersPage from "../features/players/PlayersPage";
 import PlayerDetail from "../features/players/PlayerDetail";
 
-// Buscador
+// 🔥 NUEVA PÁGINA (ESTADÍSTICAS)
+import StatsPage from "../features/stats/pages/StatsPage";
+
+// 🔥 COMPONENTES
 import GlobalSearch from "../components/GlobalSearch";
 
-// Hooks
+// 🔥 HOOKS
 import useSyncClan from "../hooks/useSyncClan";
 import { useClan } from "../context/ClanContext";
 
@@ -20,7 +23,6 @@ function ClanWrapper({ children }) {
 
   const { clanId } = useClan();
 
-  // 🧠 EVITA PANTALLA BLANCA
   if (!clanId) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center text-green-400">
@@ -45,7 +47,7 @@ export default function AppRouter() {
         {/* 🔥 REDIRECCIÓN INICIAL */}
         <Route path="/" element={<Navigate to="/mexyssyla" />} />
 
-        {/* 🔥 RUTAS MULTICLAN */}
+        {/* 🔥 HOME */}
         <Route 
           path="/:clanSlug" 
           element={
@@ -55,6 +57,7 @@ export default function AppRouter() {
           } 
         />
 
+        {/* 🔥 RANKING */}
         <Route 
           path="/:clanSlug/ranking" 
           element={
@@ -64,6 +67,7 @@ export default function AppRouter() {
           } 
         />
 
+        {/* 🔥 PLAYERS */}
         <Route 
           path="/:clanSlug/players" 
           element={
@@ -73,11 +77,22 @@ export default function AppRouter() {
           } 
         />
 
+        {/* 🔥 PLAYER DETAIL */}
         <Route 
           path="/:clanSlug/players/:tag" 
           element={
             <ClanWrapper>
               <PlayerDetail />
+            </ClanWrapper>
+          } 
+        />
+
+        {/* 🔥🔥🔥 NUEVA RUTA ESTADÍSTICAS */}
+        <Route 
+          path="/:clanSlug/stats" 
+          element={
+            <ClanWrapper>
+              <StatsPage />
             </ClanWrapper>
           } 
         />

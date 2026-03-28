@@ -1,41 +1,35 @@
-import React, { useState } from "react";
-import { getRankImage } from "../../../utils/ranks"; // 🔥 NUEVO
-import { useClan } from "../../../context/ClanContext";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { getRankImage } from "../../../utils/ranks";
 
-export default function SearchBar({
+export default function PlayerSelect({
   value,
   onChange,
   players,
+  onSelect,
   placeholder
 }) {
 
   const [isOpen, setIsOpen] = useState(false);
 
-  const { clanSlug } = useClan();
-  const navigate = useNavigate();
-
   const results =
     value.length > 1
       ? players
           .filter(p =>
-            (p.player_name?.toLowerCase().includes(value.toLowerCase())) ||
-            (p.player_tag?.toLowerCase().includes(value.toLowerCase())) ||
-            (p.rango?.toLowerCase().includes(value.toLowerCase()))
+            p.player_name?.toLowerCase().includes(value.toLowerCase()) ||
+            p.player_tag?.toLowerCase().includes(value.toLowerCase()) ||
+            p.rango?.toLowerCase().includes(value.toLowerCase())
           )
           .slice(0, 6)
       : [];
 
-  function go(tag) {
-    if (!clanSlug) return;
-
-    navigate(`/${clanSlug}/players/${tag.replace("#", "")}`);
+  function handleSelect(player) {
+    onSelect(player);
     setIsOpen(false);
   }
 
   function handleKey(e) {
     if (e.key === "Enter" && results.length > 0) {
-      go(results[0].player_tag);
+      handleSelect(results[0]);
     }
   }
 
@@ -44,8 +38,8 @@ export default function SearchBar({
 
       <input
         type="text"
-        placeholder={placeholder}
         value={value}
+        placeholder={placeholder}
         onChange={(e) => {
           onChange(e.target.value);
           setIsOpen(true);
@@ -70,7 +64,6 @@ export default function SearchBar({
       />
 
       {isOpen && results.length > 0 && (
-
         <div className="
           absolute
           top-full
@@ -88,7 +81,7 @@ export default function SearchBar({
 
             <div
               key={p.player_tag}
-              onClick={() => go(p.player_tag)}
+              onClick={() => handleSelect(p)}
               className="
                 flex items-center gap-4
                 p-4
@@ -100,35 +93,22 @@ export default function SearchBar({
               "
             >
 
-              {/* 🔥 RANGO */}
-              <div className="relative">
-                <div className="absolute w-8 h-8 bg-green-500/20 blur-lg"></div>
+              <img
+  src={getRankImage(p.rango)}
+  className="w-10 h-10 object-contain"
+/>
 
-                <img
-                  src={getRankImage(p.rango)}
-                  className="relative w-8 h-8 object-contain"
-                  onError={(e) => {
-                    e.currentTarget.src = "/ranks/default.png";
-                  }}
-                />
-              </div>
-
-              {/* 🔥 INFO */}
               <div className="flex flex-col">
-
                 <span className="text-xs font-bold uppercase">
                   {p.player_name}
                 </span>
-
                 <span className="text-[10px] text-green-500 font-mono">
                   {p.player_tag}
                 </span>
-
               </div>
 
-              {/* 🔥 ACTION */}
               <span className="ml-auto text-[9px] text-gray-500 font-bold uppercase">
-                Perfil →
+                Seleccionar
               </span>
 
             </div>
@@ -136,7 +116,6 @@ export default function SearchBar({
           ))}
 
         </div>
-
       )}
 
     </div>

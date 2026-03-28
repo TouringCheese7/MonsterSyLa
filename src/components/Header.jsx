@@ -146,7 +146,12 @@ export default function Header() {
           </Link>
 
           <Link to="#">Historial</Link>
-          <Link to="#">Estadísticas</Link>
+          <Link 
+  to={clanSlug ? `/${clanSlug}/stats` : "#"} 
+  className="hover:text-green-400 transition"
+>
+  Estadísticas
+</Link>
 
         </nav>
 
