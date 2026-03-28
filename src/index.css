@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Forzar el fondo de rayas en toda la página */
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: #050505;
+  background-image: repeating-linear-gradient(
+    115deg,
+    #050505,
+    #050505 10px,
+    #0a0a0a 10px,
+    #0a0a0a 20px
+  );
+  background-attachment: fixed;
+  color: white;
+}
+
+/* El contenedor raíz debe ser transparente para que se vean las rayas */
+#root {
+  min-height: 100vh;
+  background: transparent !important;
+}
+
+/* Barra de desplazamiento (scrollbar) chida */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #22c55e; /* Color verde */
+  border-radius: 10px;
+  border: 2px solid #050505;
+}
+
+/* FUERZA EL SCROLL VERDE TELPOCHCALLI */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #16a34a; /* Verde Esmeralda */
+  border-radius: 10px;
+  border: 2px solid #050505; /* Crea un efecto de separación */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #22c55e; /* Verde más brillante al pasar el mouse */
+}
+
+/* Para Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #16a34a transparent;
+}

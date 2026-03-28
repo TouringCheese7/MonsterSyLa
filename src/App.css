@@ -1,0 +1,51 @@
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  
+  /* Fondo negro base */
+  background-color: #050505;
+  
+  /* Patrón de líneas diagonales perfectas */
+  background-image: repeating-linear-gradient(
+    115deg,                /* Ángulo para que se vean hacia arriba/derecha */
+    #050505,               /* Color oscuro (negro) */
+    #050505 10px,          /* Tamaño del bloque negro */
+    #0a0a0a 10px,          /* Inicio del bloque gris (un tono apenas más claro que el negro) */
+    #0a0a0a 20px           /* Tamaño del bloque gris (haciendo que 20+20 sea igual) */
+  );
+  
+  /* Esto asegura que el fondo no se mueva al hacer scroll */
+  background-attachment: fixed;
+}
+
+.dashboard {
+  padding: 40px;
+}
+
+.title {
+  text-align: center;
+  font-size: 36px;
+  margin-bottom: 40px;
+}
+
+.players {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+}
+
+.card {
+  background: linear-gradient(145deg,#021a02,#063606);
+  border: 2px solid #00ff66;
+  border-radius: 15px;
+  padding: 20px;
+  width: 220px;
+  text-align: center;
+  box-shadow: 0 0 20px #00ff66;
+}
+
+.card h3 {
+  margin-top: 0;
+  color: #00ff66;
+}
