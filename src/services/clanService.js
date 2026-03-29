@@ -55,7 +55,6 @@ export async function getTopTravel(clanId) {
 
 /* 🔥 RANKING */
 export async function getRanking(view, order, clanId = 1) {
-
   const { data, error } = await supabase
     .from(view)
     .select("*")
@@ -64,6 +63,23 @@ export async function getRanking(view, order, clanId = 1) {
 
   if (error) {
     console.error("Error ranking:", error);
+    return [];
+  }
+
+  return data;
+}
+
+/* 🔥 TOP RECORDS */
+export async function getTopRecords(clanId, category) {
+  const { data, error } = await supabase
+    .from("view_top10_records")
+    .select("*")
+    .eq("clan_id", clanId)
+    .eq("category", category)
+    .order("position", { ascending: true });
+
+  if (error) {
+    console.error("Error records:", error);
     return [];
   }
 

@@ -5,6 +5,7 @@ import Home from "../features/home/Home";
 import RankingPage from "../features/ranking/pages/RankingPage";
 import PlayersPage from "../features/players/PlayersPage";
 import PlayerDetail from "../features/players/PlayerDetail";
+import StatsPage from "../features/stats/pages/StatsPage";
 
 // Buscador
 import GlobalSearch from "../components/GlobalSearch";
@@ -46,6 +47,15 @@ export default function AppRouter() {
         <Route path="/" element={<Navigate to="/mexyssyla" />} />
 
         {/* 🔥 RUTAS MULTICLAN */}
+<Route 
+  path="/:clanSlug/stats" 
+  element={
+    <ClanWrapper>
+      <StatsPage />
+    </ClanWrapper>
+  } 
+/>
+
         <Route 
           path="/:clanSlug" 
           element={

@@ -6,19 +6,15 @@ import { Home } from "lucide-react";
 
 export default function Header() {
 
-  // 🔥 CONTEXTO GLOBAL
   const { clanId, setClanId, clanName, setClanName, clanSlug, setClanSlug } = useClan();
 
-  // 🔥 NAVIGATION
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 🔥 ESTADOS
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [clans, setClans] = useState([]);
 
-  // 🔥 FETCH CLANES
   useEffect(() => {
 
     async function fetchClans() {
@@ -34,7 +30,6 @@ export default function Header() {
 
       setClans(data || []);
 
-      /* 🔥 AUTO SELECCIÓN */
       if ((!clanId || !clanName) && data?.length > 0) {
         setClanId(data[0].id);
         setClanName(data[0].clan_name);
@@ -55,7 +50,6 @@ export default function Header() {
         {/* IZQUIERDA */}
         <div className="flex items-center gap-3 md:gap-6">
 
-          {/* 🏠 HOME */}
           <Link to={clanSlug ? `/${clanSlug}` : "#"} className="text-white hover:text-green-400 transition">
             <Home size={22} strokeWidth={2} />
           </Link>
@@ -68,7 +62,7 @@ export default function Header() {
               className="w-8 h-8 md:w-10 md:h-10 object-contain" 
             />
 
-            {/* 🔥 DROPDOWN CLAN */}
+            {/* DROPDOWN */}
             <div className="relative">
 
               <button
@@ -92,7 +86,6 @@ export default function Header() {
                         setClanName(clan.clan_name);
                         setClanSlug(clan.slug);
 
-                        // 🔥🔥🔥 CAMBIAR URL SIN PERDER LA VISTA
                         const restOfPath = location.pathname.replace(/^\/[^/]+/, "");
                         navigate(`/${clan.slug}${restOfPath}`);
 
@@ -145,8 +138,13 @@ export default function Header() {
             Ranking
           </Link>
 
-          <Link to="#">Historial</Link>
-          <Link to="#">Estadísticas</Link>
+          {/* 🔥 FIX IMPORTANTE */}
+          <Link 
+            to={clanSlug ? `/${clanSlug}/stats` : "#"} 
+            className="hover:text-green-400 transition"
+          >
+            Estadísticas
+          </Link>
 
         </nav>
 
@@ -185,6 +183,14 @@ export default function Header() {
             onClick={() => setMenuOpen(false)}
           >
             Ranking
+          </Link>
+
+          {/* 🔥 TAMBIÉN EN MOBILE */}
+          <Link 
+            to={clanSlug ? `/${clanSlug}/stats` : "#"} 
+            onClick={() => setMenuOpen(false)}
+          >
+            Estadísticas
           </Link>
 
         </div>
