@@ -3,12 +3,15 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
+"scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "lint": "eslint .",
+  "preview": "vite preview",
+
+  "domingo": "node project-root/scripts/syncClans.js domingo",
+  "lunes": "node project-root/scripts/syncClans.js lunes"
+},
   "dependencies": {
     "@supabase/supabase-js": "^2.98.0",
     "lucide-react": "^0.577.0",

@@ -1,0 +1,5 @@
+node project-root/scripts/syncClans.js domingo
+node project-root/scripts/syncClans.js lunes
+
+npm run domingo
+npm run lunes
