@@ -166,25 +166,21 @@ export default function PlayerDetail() {
         setActivity(Math.min(Math.round(avg / 40), 100));
       }
 
-      /* 📈 HISTORIAL */
-      const { data: hist } = await supabase
-        .from("snapshots")
-        .select("date, donations, war_points")
-        .eq("player_id", pData.id)
-        .eq("clan_id", clanId)
-        .order("date", { ascending: true })
-        .limit(8);
+/* 📈 HISTORIAL LIMPIO */
+const { data: hist } = await supabase
+  .from("snapshots")
+  .select("date, donations, war_points")
+  .eq("player_id", pData.id)
+  .eq("clan_id", clanId)
+  .order("date", { ascending: true });
 
-      if (hist) {
-        setHistory(hist.map(r => ({
-          date: new Date(r.date).toLocaleDateString("es-MX", {
-            day: "numeric",
-            month: "short"
-          }),
-          don: r.donations || 0,
-          war: r.war_points || 0
-        })));
-      }
+if (hist) {
+  setHistory(hist.map(r => ({
+    date: r.date,
+    don: Number(r.donations) || 0,
+    war: Number(r.war_points) || 0
+  })));
+}
 
       /* 📅 FECHAS */
       const { data: fechas } = await supabase

@@ -1,139 +1,132 @@
-import { useState, useEffect } from "react"
-import { supabase } from "../services/supabaseClient"
-import { useNavigate } from "react-router-dom"
-import { getRangoIcon } from "../features/ranking/utils/RangoHelpers"
-import { useClan } from "../context/ClanContext" // 🔥 IMPORTANTE
+import { useState, useEffect } from "react";
+import { supabase } from "../services/supabaseClient";
+import { useNavigate } from "react-router-dom";
+import { getRangoIcon } from "../features/ranking/utils/RangoHelpers";
+import { useClan } from "../context/ClanContext";
 
 export default function GlobalSearch(){
 
-const [open,setOpen] = useState(false)
-const [query,setQuery] = useState("")
-const [players,setPlayers] = useState([])
+  const [open,setOpen] = useState(false);
+  const [query,setQuery] = useState("");
+  const [players,setPlayers] = useState([]);
 
-const navigate = useNavigate()
-const { clanSlug } = useClan() // 🔥 AQUÍ
+  const navigate = useNavigate();
+  const { clanSlug, clanId } = useClan(); // 🔥 FIX
 
-useEffect(()=>{
+  useEffect(()=>{
 
-function handleKey(e){
+    function handleKey(e){
 
-if(e.ctrlKey && e.key==="k"){
+      if(e.ctrlKey && e.key==="k"){
+        e.preventDefault();
+        setOpen(o=>!o);
+      }
 
-e.preventDefault()
-setOpen(o=>!o)
+      if(e.key==="Escape"){
+        setOpen(false);
+      }
 
-}
+    }
 
-if(e.key==="Escape"){
+    window.addEventListener("keydown",handleKey);
+    return ()=> window.removeEventListener("keydown",handleKey);
 
-setOpen(false)
+  },[]);
 
-}
+  useEffect(()=>{
 
-}
+    if(!clanId) return; // 🔥 FIX
 
-window.addEventListener("keydown",handleKey)
+    async function fetchPlayers(){
 
-return ()=> window.removeEventListener("keydown",handleKey)
+      const {data,error} = await supabase
+        .from("view_players_full") // 🔥 IMPORTANTE
+        .select("*")
+        .eq("clan_id", clanId);
 
-},[])
+      if(error){
+        console.error("Error cargando jugadores:", error);
+        return;
+      }
 
+      setPlayers(data || []);
 
-useEffect(()=>{
+    }
 
-async function fetchPlayers(){
+    fetchPlayers();
 
-const {data} = await supabase
-.from("view_players_full")
-.select("*")
+  },[clanId]); // 🔥 FIX
 
-setPlayers(data || [])
+  const results =
+    query.length>1
+      ? players.filter(p =>
 
-}
+        p.player_name?.toLowerCase().includes(query.toLowerCase()) ||
+        p.player_tag?.toLowerCase().includes(query.toLowerCase()) ||
+        p.rango?.toLowerCase().includes(query.toLowerCase())
 
-fetchPlayers()
+      ).slice(0,6)
+      : [];
 
-},[])
+  function go(tag){
 
+    if(!clanSlug) return;
 
-const results =
-query.length>1
-? players.filter(p =>
+    setOpen(false);
 
-p.player_name?.toLowerCase().includes(query.toLowerCase()) ||
+    navigate(`/${clanSlug}/players/${tag.replace("#","")}`); // 🔥 correcto
 
-p.player_tag?.toLowerCase().includes(query.toLowerCase()) ||
+  }
 
-p.rango?.toLowerCase().includes(query.toLowerCase())
+  if(!open) return null;
 
-).slice(0,6)
-: []
+  return(
 
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start justify-center pt-40 z-[999]">
 
-// 🔥 ARREGLADO
-function go(tag){
+      <div className="w-[600px] bg-[#050505] border border-green-500/30 rounded-xl overflow-hidden">
 
-if(!clanSlug) return
+        <input
+          autoFocus
+          value={query}
+          onChange={(e)=>setQuery(e.target.value)}
+          placeholder="Buscar jugador, tag o rango..."
+          className="w-full bg-[#080808] px-6 py-4 outline-none border-b border-white/10 text-sm"
+        />
 
-setOpen(false)
-navigate(`/${clanSlug}/players/${tag.replace("#","")}`)
+        <div className="max-h-[300px] overflow-y-auto">
 
-}
+          {results.map(p=>(
 
+            <div
+              key={p.player_tag}
+              onClick={()=>go(p.player_tag)}
+              className="flex items-center gap-4 px-6 py-4 hover:bg-green-500/10 cursor-pointer"
+            >
 
-if(!open) return null
+              <img
+                src={getRangoIcon(p.rango)}
+                className="w-8 h-8 object-contain"
+              />
 
+              <div>
+                <p className="text-sm font-bold">{p.player_name}</p>
+                <p className="text-xs text-green-500 font-mono">{p.player_tag}</p>
+              </div>
 
-return(
+              <span className="ml-auto text-xs text-gray-500">
+                Perfil →
+              </span>
 
-<div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start justify-center pt-40 z-[999]">
+            </div>
 
-<div className="w-[600px] bg-[#050505] border border-green-500/30 rounded-xl overflow-hidden">
+          ))}
 
-<input
-autoFocus
-value={query}
-onChange={(e)=>setQuery(e.target.value)}
-placeholder="Buscar jugador, tag o rango..."
-className="w-full bg-[#080808] px-6 py-4 outline-none border-b border-white/10 text-sm"
-/>
+        </div>
 
-<div className="max-h-[300px] overflow-y-auto">
+      </div>
 
-{results.map(p=>(
+    </div>
 
-<div
-key={p.player_tag}
-onClick={()=>go(p.player_tag)}
-className="flex items-center gap-4 px-6 py-4 hover:bg-green-500/10 cursor-pointer"
->
-
-<img
-src={getRangoIcon(p.rango)}
-className="w-8 h-8 object-contain"
-/>
-
-<div>
-
-<p className="text-sm font-bold">{p.player_name}</p>
-<p className="text-xs text-green-500 font-mono">{p.player_tag}</p>
-
-</div>
-
-<span className="ml-auto text-xs text-gray-500">
-Perfil →
-</span>
-
-</div>
-
-))}
-
-</div>
-
-</div>
-
-</div>
-
-)
-
+  );
 }
