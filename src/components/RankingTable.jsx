@@ -34,19 +34,20 @@ export default function RankingTable({ view = "view_ranking_historico" }) {
         let cambiosMap = {};
 
         /* 🔥 2. SOLO HISTÓRICO */
-        if (selectedView === "view_ranking_historico") {
+if (selectedView === "view_ranking_historico") {
 
-          const { data: cambios, error } = await supabase
-            .from("view_ranking_change")
-            .select("*");
+const { data: cambios, error } = await supabase
+  .from("view_ranking_change")
+  .select("*")
+  .eq("clan_id", Number(clanId));
 
-          if (!error && cambios) {
-            cambios.forEach(c => {
-              cambiosMap[c.player_tag] = c.cambio;
-            });
-          }
+if (!error && cambios) {
+  cambios.forEach(c => {
+    cambiosMap[c.player_tag] = c.cambio;
+  });
+}
 
-        }
+}
 
         /* 🔥 3. MEZCLAR */
         const rankingWithChange = ranking.map(r => ({
