@@ -2,15 +2,21 @@ name: MonsterSyLa Cron
 
 on:
   schedule:
+    # Domingo 5:00 PM México
     - cron: '0 23 * * 0'
+
+    # Lunes 6:00 AM México
     - cron: '0 12 * * 1'
 
   workflow_dispatch:
     inputs:
       modo:
-        description: 'domingo o lunes'
+        description: 'Selecciona modo'
         required: true
-        default: 'domingo'
+        type: choice
+        options:
+          - domingo
+          - lunes
 
 jobs:
   run-script:
@@ -22,13 +28,16 @@ jobs:
       CR_API_KEY: ${{ secrets.CR_API_KEY }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - run: npm install
+      - name: Instalar dependencias
+        run: npm install
 
       - name: Auto Domingo
         if: github.event.schedule == '0 23 * * 0'
