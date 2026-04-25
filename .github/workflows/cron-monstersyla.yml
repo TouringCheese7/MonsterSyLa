@@ -2,13 +2,15 @@ name: MonsterSyLa Cron
 
 on:
   schedule:
-    # Domingo 5 PM México
     - cron: '0 23 * * 0'
-
-    # Lunes 6 AM México
     - cron: '0 12 * * 1'
 
   workflow_dispatch:
+    inputs:
+      modo:
+        description: 'domingo o lunes'
+        required: true
+        default: 'domingo'
 
 jobs:
   run-script:
@@ -28,8 +30,14 @@ jobs:
 
       - run: npm install
 
-      - if: github.event.schedule == '0 23 * * 0'
+      - name: Auto Domingo
+        if: github.event.schedule == '0 23 * * 0'
         run: node scripts/syncClans.js domingo
 
-      - if: github.event.schedule == '0 12 * * 1'
+      - name: Auto Lunes
+        if: github.event.schedule == '0 12 * * 1'
         run: node scripts/syncClans.js lunes
+
+      - name: Manual
+        if: github.event_name == 'workflow_dispatch'
+        run: node scripts/syncClans.js ${{ github.event.inputs.modo }}
