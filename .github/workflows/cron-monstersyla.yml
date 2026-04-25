@@ -1,0 +1,35 @@
+name: MonsterSyLa Cron
+
+on:
+  schedule:
+    # Domingo 5 PM México
+    - cron: '0 23 * * 0'
+
+    # Lunes 6 AM México
+    - cron: '0 12 * * 1'
+
+  workflow_dispatch:
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      CR_API_KEY: ${{ secrets.CR_API_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install
+
+      - if: github.event.schedule == '0 23 * * 0'
+        run: node scripts/syncClans.js domingo
+
+      - if: github.event.schedule == '0 12 * * 1'
+        run: node scripts/syncClans.js lunes
